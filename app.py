@@ -39,7 +39,7 @@ async def login_page(request: Request):
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}&state={state}&scope=read:user%20user:email"
     )
-    return templates.TemplateResponse("login.html", {"request": request, "github_auth_url": github_auth_url})
+    return templates.TemplateResponse(request=request, name="login.html", context={"github_auth_url": github_auth_url})
 
 @app.get("/auth/tokens", name="receive_tokens")
 async def receive_tokens(
@@ -70,7 +70,7 @@ async def dashboard(request: Request):
         resp = await client.get(f"{BACKEND_URL}/api/profiles", headers={"X-API-Version": "1", "Authorization": f"Bearer {token}"})
         data = resp.json() if resp.status_code == 200 else {"total": 0, "data": []}
         
-    return templates.TemplateResponse("dashboard.html", {"request": request, "data": data, "username": username, "role": role})
+    return templates.TemplateResponse(request=request, name="dashboard.html", context={"data": data, "username": username, "role": role})
 
 @app.get("/profiles", response_class=HTMLResponse)
 async def profiles_page(request: Request, q: str = None, page: int = 1, limit: int = 10):
@@ -85,7 +85,7 @@ async def profiles_page(request: Request, q: str = None, page: int = 1, limit: i
             resp = await client.get(f"{BACKEND_URL}/api/profiles?page={page}&limit={limit}", headers=headers)
         data = resp.json() if resp.status_code == 200 else {"data": [], "page": 1, "total_pages": 1}
 
-    return templates.TemplateResponse("profiles.html", {"request": request, "data": data, "q": q})
+    return templates.TemplateResponse(request=request, name="profiles.html", context={"data": data, "q": q})
 
 @app.get("/logout")
 async def logout(response: Response):
