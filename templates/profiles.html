@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profiles | Insighta Labs+</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="glass">
+        <div class="logo">INSIGHTA LABS+</div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profiles">Profiles</a>
+            <a href="/logout" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 800;">Profile Explorer</h1>
+                <p style="color: var(--text-dim);">Search and filter through the intelligence database.</p>
+            </div>
+            <form action="/profiles" method="get" class="glass"
+                style="padding: 0.5rem 1rem; display: flex; gap: 0.5rem;">
+                <input type="text" name="q" placeholder="Try 'young males from nigeria'..." value="{{ q or '' }}"
+                    style="background: transparent; border: none; color: white; outline: none; width: 300px; padding: 0.25rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">Search</button>
+            </form>
+        </div>
+
+        <section class="glass" style="padding: 2rem;">
+            {% if q %}
+            <p style="margin-bottom: 1.5rem; color: var(--text-dim);">Showing results for: <span
+                    style="color: var(--primary);">"{{ q }}"</span></p>
+            {% endif %}
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>NAME</th>
+                        <th>GENDER</th>
+                        <th>AGE</th>
+                        <th>COUNTRY</th>
+                        <th>PROBABILITY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in data.data|default([]) %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ p.name }}</td>
+                        <td><span class="badge badge-blue">{{ p.gender }}</span></td>
+                        <td>{{ p.age }} ({{ p.age_group }})</td>
+                        <td>{{ p.country_id }}</td>
+                        <td>
+                            <div
+                                style="width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                                <div
+                                    style="width: {{ (p.gender_probability|float * 100) if p.gender_probability else 0 }}%; height: 100%; background: var(--accent); border-radius: 3px;">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-dim);">No profiles
+                            found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if data.total_pages|default(1) > 1 %}
+            <div style="display: flex; justify-content: center; margin-top: 2rem; gap: 1rem;">
+                <a href="/profiles?page={{ data.page|default(1) - 1 }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline" {% if data.page|default(1) <= 1
+                    %}style="opacity: 0.5; pointer-events: none;" {% endif %}>Previous</a>
+                <span style="align-self: center;">Page {{ data.page|default(1) }} of {{ data.total_pages|default(1) }}</span>
+                <a href="/profiles?page={{ data.page|default(1) + 1 }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline" {% if data.page|default(1) >= data.total_pages|default(1)
+                    %}style="opacity: 0.5; pointer-events: none;"{% endif %}>Next</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+
+</html>
