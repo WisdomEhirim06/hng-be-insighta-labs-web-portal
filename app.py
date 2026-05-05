@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -99,8 +99,38 @@ async def profiles_page(request: Request, q: str = None, page: int = 1, limit: i
             )
         data = resp.json() if resp.status_code == 200 else {"data": [], "page": 1, "total_pages": 1}
 
+    role = request.cookies.get("role", "analyst")
     return templates.TemplateResponse(
-        request=request, name="profiles.html", context={"data": data, "q": q}
+        request=request, name="profiles.html", context={"data": data, "q": q, "role": role}
+    )
+
+
+@app.post("/profiles/create", response_class=HTMLResponse)
+async def create_profile(request: Request, name: str = Form(...)):
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/login", status_code=302)
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.post(
+            f"{BACKEND_URL}/api/profiles",
+            json={"name": name},
+            headers={"X-API-Version": "1", "Authorization": f"Bearer {token}"},
+        )
+
+    if resp.status_code in (200, 201):
+        return RedirectResponse("/profiles?created=1", status_code=302)
+
+    error = resp.json().get("message", "Failed to create profile") if resp.content else "Failed to create profile"
+    role = request.cookies.get("role", "analyst")
+    headers = {"X-API-Version": "1", "Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{BACKEND_URL}/api/profiles?page=1&limit=10", headers=headers)
+        data = r.json() if r.status_code == 200 else {"data": [], "page": 1, "total_pages": 1}
+    return templates.TemplateResponse(
+        request=request,
+        name="profiles.html",
+        context={"data": data, "q": None, "role": role, "error": error},
     )
 
 
