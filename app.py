@@ -1,6 +1,5 @@
 import os
-import secrets
-from fastapi import FastAPI, Request, HTTPException, Response, Depends, Form
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -17,7 +16,6 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), na
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 BACKEND_URL = os.getenv("INSIGHTA_BACKEND_URL", "https://hng14-be-intelligence-query.vercel.app")
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -28,16 +26,10 @@ async def index(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    # Embed the portal's token-receive URL in the state so the backend knows where to
-    # redirect after the OAuth exchange.  Use "|" as delimiter because URLs contain ":"
-    # which breaks colon-based splitting.  Format: "web|{callback_url}|{nonce}"
-    nonce = secrets.token_urlsafe(16)
-    token_receive_url = str(request.url_for("receive_tokens"))
-    state = f"web|{token_receive_url}|{nonce}"
-    github_auth_url = (
-        f"https://github.com/login/oauth/authorize"
-        f"?client_id={GITHUB_CLIENT_ID}&state={state}&scope=read:user%20user:email"
-    )
+    # The backend's /auth/github endpoint handles the full OAuth initiation.
+    # It will generate a 'web:{nonce}' state and, after GitHub auth, redirect
+    # tokens back to this portal's /auth/tokens endpoint via WEB_PORTAL_URL env var.
+    github_auth_url = f"{BACKEND_URL}/auth/github"
     return templates.TemplateResponse(request=request, name="login.html", context={"github_auth_url": github_auth_url})
 
 @app.get("/auth/tokens", name="receive_tokens")
