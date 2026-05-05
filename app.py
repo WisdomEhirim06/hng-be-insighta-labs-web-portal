@@ -28,13 +28,12 @@ async def index(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    # Embed the web portal's own token-receive URL inside state.
-    # Format: web:<callback_url>:<nonce>
-    # The backend will redirect back here with tokens in query params after OAuth.
-    # This avoids registering localhost:3000 as a redirect_uri in GitHub — only the Vercel URL is needed.
+    # Embed the portal's token-receive URL in the state so the backend knows where to
+    # redirect after the OAuth exchange.  Use "|" as delimiter because URLs contain ":"
+    # which breaks colon-based splitting.  Format: "web|{callback_url}|{nonce}"
     nonce = secrets.token_urlsafe(16)
     token_receive_url = str(request.url_for("receive_tokens"))
-    state = f"web:{token_receive_url}:{nonce}"
+    state = f"web|{token_receive_url}|{nonce}"
     github_auth_url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}&state={state}&scope=read:user%20user:email"
