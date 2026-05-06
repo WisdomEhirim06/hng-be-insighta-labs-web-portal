@@ -134,6 +134,57 @@ async def create_profile(request: Request, name: str = Form(...)):
     )
 
 
+@app.get("/profiles/{profile_id}", response_class=HTMLResponse)
+async def profile_detail(request: Request, profile_id: str):
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/login")
+
+    headers = {"X-API-Version": "1", "Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f"{BACKEND_URL}/api/profiles/{profile_id}", headers=headers)
+
+    if resp.status_code == 404:
+        return RedirectResponse("/profiles")
+    profile = resp.json().get("data") if resp.status_code == 200 else None
+    role = request.cookies.get("role", "analyst")
+    return templates.TemplateResponse(
+        request=request, name="profile_detail.html", context={"profile": profile, "role": role}
+    )
+
+
+@app.get("/account", response_class=HTMLResponse)
+async def account_page(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/login")
+
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f"{BACKEND_URL}/api/users/me", headers=headers)
+
+    user = resp.json() if resp.status_code == 200 else {}
+    username = request.cookies.get("username", "User")
+    role = request.cookies.get("role", "analyst")
+    return templates.TemplateResponse(
+        request=request, name="account.html", context={"user": user, "username": username, "role": role}
+    )
+
+
+@app.post("/profiles/{profile_id}/delete")
+async def delete_profile(request: Request, profile_id: str):
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/login", status_code=302)
+
+    async with httpx.AsyncClient() as client:
+        await client.delete(
+            f"{BACKEND_URL}/api/profiles/{profile_id}",
+            headers={"X-API-Version": "1", "Authorization": f"Bearer {token}"},
+        )
+    return RedirectResponse("/profiles", status_code=302)
+
+
 @app.get("/logout")
 async def logout(request: Request):
     refresh_token = request.cookies.get("refresh_token")

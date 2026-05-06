@@ -14,6 +14,7 @@
             <span style="color: var(--text-dim); margin-right: 1rem; font-size: 0.875rem;">@{{ username }}</span>
             <a href="/dashboard">Dashboard</a>
             <a href="/profiles">Profiles</a>
+            <a href="/account">Account</a>
             <a href="/logout" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</a>
         </div>
     </nav>
@@ -61,7 +62,7 @@
                 <tbody>
                     {% for p in data.data[:5] %}
                     <tr>
-                        <td style="font-weight: 600;">{{ p.name }}</td>
+                        <td style="font-weight: 600;"><a href="/profiles/{{ p.id }}" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.15);">{{ p.name }}</a></td>
                         <td><span class="badge badge-blue">{{ p.gender }}</span></td>
                         <td>{{ p.age }}</td>
                         <td>{{ p.country_id }}</td>

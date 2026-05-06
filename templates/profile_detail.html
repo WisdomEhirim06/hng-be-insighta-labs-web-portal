@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Insighta Labs+</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="glass">
+        <div class="logo">INSIGHTA LABS+</div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profiles">Profiles</a>
+            <a href="/account">Account</a>
+            <a href="/logout" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div style="margin-bottom: 2rem;">
+            <a href="/profiles" style="color: var(--text-dim); font-size: 0.875rem; text-decoration: none;">← Back to Profiles</a>
+        </div>
+
+        {% if profile %}
+        <div class="glass" style="padding: 3rem; max-width: 700px;">
+            <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2.5rem;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700;">
+                    {{ profile.name[0].upper() }}
+                </div>
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem;">{{ profile.name }}</h1>
+                    <span class="badge badge-blue">{{ profile.gender }}</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="stat-card glass" style="padding: 1.25rem;">
+                    <div class="stat-label">Age</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">{{ profile.age }}</div>
+                    <div style="color: var(--text-dim); font-size: 0.85rem;">{{ profile.age_group }}</div>
+                </div>
+                <div class="stat-card glass" style="padding: 1.25rem;">
+                    <div class="stat-label">Country</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">{{ profile.country_id }}</div>
+                    <div style="color: var(--text-dim); font-size: 0.85rem;">{{ profile.country_name }}</div>
+                </div>
+                <div class="stat-card glass" style="padding: 1.25rem;">
+                    <div class="stat-label">Gender Probability</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">{{ "%.0f"|format(profile.gender_probability * 100) }}%</div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 0.5rem;">
+                        <div style="width: {{ "%.0f"|format(profile.gender_probability * 100) }}%; height: 100%; background: var(--accent); border-radius: 3px;"></div>
+                    </div>
+                </div>
+                <div class="stat-card glass" style="padding: 1.25rem;">
+                    <div class="stat-label">Country Probability</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0;">{{ "%.0f"|format(profile.country_probability * 100) }}%</div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 0.5rem;">
+                        <div style="width: {{ "%.0f"|format(profile.country_probability * 100) }}%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <div style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 0.5rem;">Profile ID</div>
+                <div style="font-family: monospace; font-size: 0.875rem; color: var(--text-dim);">{{ profile.id }}</div>
+                <div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 1rem; margin-bottom: 0.25rem;">Created</div>
+                <div style="font-size: 0.875rem;">{{ profile.created_at }}</div>
+            </div>
+
+            {% if role == 'admin' %}
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <form action="/profiles/{{ profile.id }}/delete" method="post" onsubmit="return confirm('Delete this profile permanently?')">
+                    <button type="submit" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #ef4444; padding: 0.6rem 1.25rem; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Delete Profile</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="glass" style="padding: 3rem; text-align: center; color: var(--text-dim);">
+            Profile not found.
+        </div>
+        {% endif %}
+    </main>
+</body>
+</html>
